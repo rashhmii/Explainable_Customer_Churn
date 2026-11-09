@@ -1,0 +1,233 @@
+{
+  "timestamp": "2026-11-09T21:25:57.421997",
+  "champion_model": "XGBoost",
+  "cross_validation_benchmark": {
+    "Logistic Regression": {
+      "CV_ROC_AUC_mean": 0.845908297174175,
+      "CV_ROC_AUC_std": 0.012390580507881558,
+      "CV_PR_AUC_mean": 0.6601045717269471,
+      "CV_PR_AUC_std": 0.019543881801134783,
+      "CV_F1_mean": 0.6294017954820067,
+      "CV_F1_std": 0.0229123814417469,
+      "CV_Recall_mean": 0.8013377926421403,
+      "CV_Recall_std": 0.037932968237479145,
+      "CV_Precision_mean": 0.5184866096547788,
+      "CV_Precision_std": 0.018544090185123988,
+      "CV_Brier_mean": 0.16523603736399384,
+      "CV_Brier_std": 0.005347588215684482
+    },
+    "Random Forest": {
+      "CV_ROC_AUC_mean": 0.8467960171385218,
+      "CV_ROC_AUC_std": 0.011144208658520543,
+      "CV_PR_AUC_mean": 0.6614136545203302,
+      "CV_PR_AUC_std": 0.018633795071555066,
+      "CV_F1_mean": 0.6300274717808397,
+      "CV_F1_std": 0.014073710948626156,
+      "CV_Recall_mean": 0.788628762541806,
+      "CV_Recall_std": 0.020660127373218047,
+      "CV_Precision_mean": 0.5247408431965899,
+      "CV_Precision_std": 0.014402402027156298,
+      "CV_Brier_mean": 0.16026201114715266,
+      "CV_Brier_std": 0.005203293097499742
+    },
+    "XGBoost": {
+      "CV_ROC_AUC_mean": 0.8486315009143895,
+      "CV_ROC_AUC_std": 0.010969737979200601,
+      "CV_PR_AUC_mean": 0.6662045177920319,
+      "CV_PR_AUC_std": 0.019969058396287976,
+      "CV_F1_mean": 0.6329768038252933,
+      "CV_F1_std": 0.015610701108894003,
+      "CV_Recall_mean": 0.7953177257525084,
+      "CV_Recall_std": 0.020660127373218047,
+      "CV_Precision_mean": 0.5257621381844475,
+      "CV_Precision_std": 0.014246005489967815,
+      "CV_Brier_mean": 0.158911994099617,
+      "CV_Brier_std": 0.005002075755892423
+    }
+  },
+  "held_out_test_benchmark": {
+    "Logistic Regression": {
+      "ROC_AUC": 0.8416698958898448,
+      "PR_AUC": 0.6331216058851128,
+      "F1": 0.6142557651991615,
+      "Recall": 0.7834224598930482,
+      "Precision": 0.5051724137931034,
+      "Accuracy": 0.7388218594748048,
+      "Brier_Score": 0.16865996193678773,
+      "Confusion_Matrix": [
+        [
+          748,
+          287
+        ],
+        [
+          81,
+          293
+        ]
+      ],
+      "Classification_Report": {
+        "0": {
+          "precision": 0.902291917973462,
+          "recall": 0.7227053140096619,
+          "f1-score": 0.8025751072961373,
+          "support": 1035.0
+        },
+        "1": {
+          "precision": 0.5051724137931034,
+          "recall": 0.7834224598930482,
+          "f1-score": 0.6142557651991615,
+          "support": 374.0
+        },
+        "accuracy": 0.7388218594748048,
+        "macro avg": {
+          "precision": 0.7037321658832827,
+          "recall": 0.7530638869513551,
+          "f1-score": 0.7084154362476494,
+          "support": 1409.0
+        },
+        "weighted avg": {
+          "precision": 0.7968819147346727,
+          "recall": 0.7388218594748048,
+          "f1-score": 0.7525882840567698,
+          "support": 1409.0
+        }
+      }
+    },
+    "Random Forest": {
+      "ROC_AUC": 0.8443036503138804,
+      "PR_AUC": 0.6617683436268723,
+      "F1": 0.6314677930306231,
+      "Recall": 0.7994652406417112,
+      "Precision": 0.5218150087260035,
+      "Accuracy": 0.752306600425834,
+      "Brier_Score": 0.16225407465716338,
+      "Confusion_Matrix": [
+        [
+          761,
+          274
+        ],
+        [
+          75,
+          299
+        ]
+      ],
+      "Classification_Report": {
+        "0": {
+          "precision": 0.9102870813397129,
+          "recall": 0.7352657004830918,
+          "f1-score": 0.8134687332977018,
+          "support": 1035.0
+        },
+        "1": {
+          "precision": 0.5218150087260035,
+          "recall": 0.7994652406417112,
+          "f1-score": 0.6314677930306231,
+          "support": 374.0
+        },
+        "accuracy": 0.752306600425834,
+        "macro avg": {
+          "precision": 0.7160510450328582,
+          "recall": 0.7673654705624016,
+          "f1-score": 0.7224682631641623,
+          "support": 1409.0
+        },
+        "weighted avg": {
+          "precision": 0.807172421895052,
+          "recall": 0.752306600425834,
+          "f1-score": 0.7651590443978527,
+          "support": 1409.0
+        }
+      }
+    },
+    "XGBoost": {
+      "ROC_AUC": 0.846558939781446,
+      "PR_AUC": 0.6597734656665162,
+      "F1": 0.6280295047418335,
+      "Recall": 0.7967914438502673,
+      "Precision": 0.5182608695652174,
+      "Accuracy": 0.7494677075940384,
+      "Brier_Score": 0.16148357093334198,
+      "Confusion_Matrix": [
+        [
+          758,
+          277
+        ],
+        [
+          76,
+          298
+        ]
+      ],
+      "Classification_Report": {
+        "0": {
+          "precision": 0.9088729016786571,
+          "recall": 0.7323671497584541,
+          "f1-score": 0.8111289459604066,
+          "support": 1035.0
+        },
+        "1": {
+          "precision": 0.5182608695652174,
+          "recall": 0.7967914438502673,
+          "f1-score": 0.6280295047418335,
+          "support": 374.0
+        },
+        "accuracy": 0.7494677075940384,
+        "macro avg": {
+          "precision": 0.7135668856219373,
+          "recall": 0.7645792968043608,
+          "f1-score": 0.7195792253511201,
+          "support": 1409.0
+        },
+        "weighted avg": {
+          "precision": 0.8051902189175311,
+          "recall": 0.7494677075940384,
+          "f1-score": 0.7625276748349656,
+          "support": 1409.0
+        }
+      }
+    }
+  },
+  "feature_5_calibration_metrics": {
+    "uncalibrated_brier_score": 0.16148357093334198,
+    "calibrated_brier_score": 0.13602861843824482,
+    "brier_improvement_pct": 15.763184048985757,
+    "uncalibrated_roc_auc": 0.846558939781446,
+    "calibrated_roc_auc": 0.8463186855769976
+  },
+  "feature_2_early_warning_distribution": {
+    "Low": 910,
+    "High": 183,
+    "Medium": 169,
+    "Critical": 147
+  },
+  "feature_names": [
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "gender_Male",
+    "SeniorCitizen_1",
+    "Partner_Yes",
+    "Dependents_Yes",
+    "PhoneService_Yes",
+    "MultipleLines_No phone service",
+    "MultipleLines_Yes",
+    "InternetService_Fiber optic",
+    "InternetService_No",
+    "OnlineSecurity_No internet service",
+    "OnlineSecurity_Yes",
+    "OnlineBackup_No internet service",
+    "OnlineBackup_Yes",
+    "DeviceProtection_No internet service",
+    "DeviceProtection_Yes",
+    "TechSupport_No internet service",
+    "TechSupport_Yes",
+    "StreamingTV_No internet service",
+    "StreamingTV_Yes",
+    "StreamingMovies_No internet service",
+    "StreamingMovies_Yes",
+    "Contract_One year",
+    "Contract_Two year",
+    "PaperlessBilling_Yes",
+    "PaymentMethod_Credit card (automatic)",
+    "PaymentMethod_Electronic check",
+    "PaymentMethod_Mailed check"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "customer_id": "2754-SDJRD",
+  "churn_probability": 0.7391288290244097,
+  "early_warning_profile": {
+    "churn_probability": 0.7391,
+    "behavioral_risk_index": 73.9,
+    "risk_tier": "Critical",
+    "action_sla_hours": 24,
+    "intervention_urgency": "Immediate Intervention (< 24h)",
+    "trigger_count": 4,
+    "active_triggers": [
+      {
+        "code": "TRG_TENURE_YEAR1",
+        "severity": "High",
+        "description": "First-Year Fragility: Customer tenure (8 months) is within the highest hazard rate window."
+      },
+      {
+        "code": "TRG_CONTRACT_MTM",
+        "severity": "High",
+        "description": "Contractual Friction: Month-to-month agreement provides zero switching barrier or exit friction."
+      },
+      {
+        "code": "TRG_HIGH_CHARGE",
+        "severity": "Medium",
+        "description": "Elevated Financial Exposure: High monthly rate ($100.15/mo) amplifies price elasticity and competitor shopping."
+      },
+      {
+        "code": "TRG_FIBER_UNPROTECTED",
+        "severity": "High",
+        "description": "High-Bandwidth Support Deficit: Fiber optic customer lacking Online Security or Tech Support (susceptible to unresolved service outages)."
+      }
+    ],
+    "recommended_retention_playbook": [
+      "Offer 12-month loyalty milestone reward with personalized usage review.",
+      "Incentivize 1-Year or 2-Year Contract migration via 15% rate lock-in discount.",
+      "Offer tier bundle optimization or temporary $10/mo promotional bill credit.",
+      "Provision complimentary 6-month TechSupport and OnlineSecurity add-on package."
+    ]
+  },
+  "shap_attributions": {
+    "top_churn_accelerators": [
+      {
+        "feature": "tenure",
+        "shap_value": 0.5977752414904535,
+        "feature_value": -0.9966836022806536
+      },
+      {
+        "feature": "Contract_Two year",
+        "shap_value": 0.5687424465990625,
+        "feature_value": 0.0
+      },
+      {
+        "feature": "MonthlyCharges",
+        "shap_value": 0.5242666020331671,
+        "feature_value": 1.1687252637656007
+      },
+      {
+        "feature": "InternetService_Fiber optic",
+        "shap_value": 0.426417849867139,
+        "feature_value": 1.0
+      },
+      {
+        "feature": "TotalCharges",
+        "shap_value": 0.22491469875792972,
+        "feature_value": -0.6115059102562459
+      }
+    ],
+    "top_retention_anchors": [
+      {
+        "feature": "TechSupport_Yes",
+        "shap_value": -0.18024654323700814,
+        "feature_value": 1.0
+      },
+      {
+        "feature": "PaymentMethod_Electronic check",
+        "shap_value": -0.1125571120902896,
+        "feature_value": 0.0
+      },
+      {
+        "feature": "PhoneService_Yes",
+        "shap_value": -0.01278456055035349,
+        "feature_value": 1.0
+      },
+      {
+        "feature": "PaymentMethod_Credit card (automatic)",
+        "shap_value": -0.009565465825144202,
+        "feature_value": 1.0
+      },
+      {
+        "feature": "MultipleLines_No phone service",
+        "shap_value": -0.00029078401159495117,
+        "feature_value": 0.0
+      }
+    ]
+  }
+}
