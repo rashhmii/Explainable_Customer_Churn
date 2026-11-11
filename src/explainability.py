@@ -11,7 +11,35 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import shap
+import xgboost as xgb
 from typing import Dict, Any, List, Tuple
+
+
+class NativeXGBoostExplainer:
+    """Compatibility-safe SHAP adapter backed by XGBoost's ``pred_contribs``.
+
+    Recent XGBoost releases serialise ``base_score`` as a vector.  Some SHAP
+    releases cannot parse that model representation in ``TreeExplainer``.  The
+    booster itself can calculate exact tree contributions, so this adapter
+    returns those values as a normal :class:`shap.Explanation` without relying
+    on SHAP's private model parser.
+    """
+
+    def __init__(self, model: Any, feature_names: List[str]):
+        self.model = model
+        self.feature_names = feature_names
+
+    def __call__(self, X: np.ndarray) -> shap.Explanation:
+        values = np.asarray(X)
+        contributions = self.model.get_booster().predict(
+            xgb.DMatrix(values, feature_names=self.feature_names), pred_contribs=True
+        )
+        return shap.Explanation(
+            values=contributions[:, :-1],
+            base_values=contributions[:, -1],
+            data=values,
+            feature_names=self.feature_names,
+        )
 
 
 def build_shap_explainer(
@@ -27,8 +55,9 @@ def build_shap_explainer(
       - Fallback: General Explainer
     """
     if 'XGBoost' in model_name:
-        # TreeExplainer is exact and fast for gradient boosted trees
-        explainer = shap.TreeExplainer(model, data=X_train_trans[:200], feature_names=feature_names)
+        # Uses XGBoost's exact contribution API and remains compatible with
+        # current XGBoost model serialisation formats.
+        explainer = NativeXGBoostExplainer(model, feature_names)
     elif 'Random Forest' in model_name:
         explainer = shap.TreeExplainer(model, data=X_train_trans[:200], feature_names=feature_names)
     elif 'Logistic' in model_name:

@@ -1,9 +1,9 @@
 {
   "customer_id": "2754-SDJRD",
-  "churn_probability": 0.7391288290244097,
+  "churn_probability": 0.7377790984438019,
   "early_warning_profile": {
-    "churn_probability": 0.7391,
-    "behavioral_risk_index": 73.9,
+    "churn_probability": 0.7378,
+    "behavioral_risk_index": 73.8,
     "risk_tier": "Critical",
     "action_sla_hours": 24,
     "intervention_urgency": "Immediate Intervention (< 24h)",
@@ -41,54 +41,54 @@
     "top_churn_accelerators": [
       {
         "feature": "tenure",
-        "shap_value": 0.5977752414904535,
+        "shap_value": 0.45606881380081177,
         "feature_value": -0.9966836022806536
       },
       {
-        "feature": "Contract_Two year",
-        "shap_value": 0.5687424465990625,
-        "feature_value": 0.0
-      },
-      {
-        "feature": "MonthlyCharges",
-        "shap_value": 0.5242666020331671,
-        "feature_value": 1.1687252637656007
-      },
-      {
         "feature": "InternetService_Fiber optic",
-        "shap_value": 0.426417849867139,
+        "shap_value": 0.3915252685546875,
         "feature_value": 1.0
       },
       {
+        "feature": "MonthlyCharges",
+        "shap_value": 0.36765405535697937,
+        "feature_value": 1.1687252637656007
+      },
+      {
+        "feature": "Contract_Two year",
+        "shap_value": 0.32059481739997864,
+        "feature_value": 0.0
+      },
+      {
         "feature": "TotalCharges",
-        "shap_value": 0.22491469875792972,
+        "shap_value": 0.20697906613349915,
         "feature_value": -0.6115059102562459
       }
     ],
     "top_retention_anchors": [
       {
         "feature": "TechSupport_Yes",
-        "shap_value": -0.18024654323700814,
+        "shap_value": -0.18881213665008545,
         "feature_value": 1.0
       },
       {
         "feature": "PaymentMethod_Electronic check",
-        "shap_value": -0.1125571120902896,
+        "shap_value": -0.15950319170951843,
         "feature_value": 0.0
       },
       {
-        "feature": "PhoneService_Yes",
-        "shap_value": -0.01278456055035349,
-        "feature_value": 1.0
-      },
-      {
         "feature": "PaymentMethod_Credit card (automatic)",
-        "shap_value": -0.009565465825144202,
+        "shap_value": -0.02146959863603115,
         "feature_value": 1.0
       },
       {
-        "feature": "MultipleLines_No phone service",
-        "shap_value": -0.00029078401159495117,
+        "feature": "PhoneService_Yes",
+        "shap_value": -0.01111523900181055,
+        "feature_value": 1.0
+      },
+      {
+        "feature": "PaymentMethod_Mailed check",
+        "shap_value": -0.006145057734102011,
         "feature_value": 0.0
       }
     ]
