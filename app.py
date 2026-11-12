@@ -13,12 +13,25 @@ from werkzeug.exceptions import HTTPException
 
 from predict import ChurnInferenceEngine
 
+from flask_cors import CORS
+
+
 ID_PATTERN = re.compile(r'^[A-Za-z0-9._\-]{1,64}$')
 
 
 def create_app(engine: ChurnInferenceEngine | None = None) -> Flask:
     """Create an app; dependency injection keeps API tests fast and isolated."""
     app = Flask(__name__)
+
+    allowed_origins = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS", "http://localhost:5173"
+        ).split(",")
+        if origin.strip()
+    ]
+    CORS(app, resources={r"/*": {"origins": allowed_origins}})
+
     app.json.sort_keys = False
     app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_UPLOAD_BYTES', 5 * 1024 * 1024))
     app.config['MAX_BATCH_ROWS'] = int(os.getenv('MAX_BATCH_ROWS', 2000))
