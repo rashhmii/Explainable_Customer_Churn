@@ -43,38 +43,95 @@ class ChurnInferenceEngine:
         self.preprocessor = joblib.load(self.preprocessor_path)
         self.explainer = joblib.load(self.explainer_path) if os.path.exists(self.explainer_path) else None
 
-        # Extract feature names
-        num_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
-        cat_cols = [
-            'gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService',
-            'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup',
-            'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies',
-            'Contract', 'PaperlessBilling', 'PaymentMethod'
-        ]
-        self.feature_names = get_clean_feature_names(self.preprocessor, num_cols, cat_cols)
+        # Column lists and allowed categories come from the fitted preprocessor (single source of truth)
+        fitted = {name: list(cols) for name, _, cols in self.preprocessor.transformers_ if name in ("num", "cat")}
+        self.num_cols, self.cat_cols = fitted["num"], fitted["cat"]
+        encoder = self.preprocessor.named_transformers_["cat"].named_steps["encoder"]
+        self.allowed_values = {c: [str(v) for v in cats] for c, cats in zip(self.cat_cols, encoder.categories_)}
+        self.feature_names = get_clean_feature_names(self.preprocessor, self.num_cols, self.cat_cols)
         # The fitted transformer is the source of truth for the API contract.
         self.required_features = list(getattr(self.preprocessor, 'feature_names_in_', []))
 
+        metrics_path = os.path.join(artifacts_dir, "metrics.json")
+        self.metrics = {}
+        if os.path.exists(metrics_path):
+            with open(metrics_path) as fh:
+                self.metrics = json.load(fh)
+
     def validate_record(self, record: dict) -> dict:
-        """Validate an API record before it reaches the sklearn transformer."""
+        """
+        Validate an API/CLI record and return a cleaned copy.
+
+        The training encoder uses handle_unknown='ignore' + drop='first', so an unknown category would
+        silently be scored as the reference category.  Categories are therefore checked against the
+        fitted encoder.  TotalCharges may be blank (as in the Telco data) and is then imputed.
+        """
         if not isinstance(record, dict):
             raise ValueError("Customer data must be a JSON object.")
 
         ignored = {'customerID', 'Churn'}
+        optional = {'TotalCharges'}
         unknown = set(record).difference(self.required_features).difference(ignored)
-        missing = set(self.required_features).difference(record)
+        missing = set(self.required_features).difference(record).difference(optional)
         if unknown:
             raise ValueError("Unknown customer fields: " + ", ".join(sorted(unknown)))
         if missing:
             raise ValueError("Missing required customer fields: " + ", ".join(sorted(missing)))
 
-        numeric_fields = {'tenure', 'MonthlyCharges', 'TotalCharges'}
-        for field in numeric_fields:
+        clean = {k: (v.strip() if isinstance(v, str) else v) for k, v in record.items()}
+        errors = []
+
+        limits = {'tenure': 1200.0, 'MonthlyCharges': 100000.0, 'TotalCharges': 100000.0}
+        for field in self.num_cols:
+            value = clean.get(field)
+            if field in optional and (value is None or (isinstance(value, str) and value == "")):
+                clean[field] = np.nan
+                continue
+            if isinstance(value, bool) or value is None:
+                errors.append(f"'{field}' must be numeric.")
+                continue
             try:
-                float(record[field])
+                number = float(value)
             except (TypeError, ValueError):
-                raise ValueError(f"'{field}' must be numeric.") from None
-        return record
+                errors.append(f"'{field}' must be numeric.")
+                continue
+            if not np.isfinite(number) or number < 0 or number > limits.get(field, 100000.0):
+                errors.append(f"'{field}' must be a finite number between 0 and {limits.get(field, 100000.0):g}.")
+                continue
+            clean[field] = int(number) if field == 'tenure' and number.is_integer() else number
+
+        for field in self.cat_cols:
+            value = clean.get(field)
+            allowed = self.allowed_values[field]
+            if field == 'SeniorCitizen':
+                token = str(value).strip().lower() if value is not None else ''
+                if token in ('1', '1.0', 'true', 'yes'):
+                    clean[field] = 1
+                elif token in ('0', '0.0', 'false', 'no'):
+                    clean[field] = 0
+                else:
+                    errors.append(f"'SeniorCitizen' must be 0 or 1, got {value!r}.")
+            elif not isinstance(value, str) or value not in allowed:
+                errors.append(f"'{field}' has invalid value {value!r}; allowed: {', '.join(allowed)}.")
+
+        if errors:
+            raise ValueError(" ".join(errors))
+        return clean
+
+    @staticmethod
+    def _py(value):
+        if isinstance(value, np.generic):
+            value = value.item()
+        return None if isinstance(value, float) and value != value else value
+
+    def _source_and_raw(self, feature: str, record: dict):
+        """Maps an engineered feature (e.g. 'Contract_One year') to its raw column and the customer's raw value."""
+        if feature in self.num_cols:
+            return feature, self._py(record.get(feature))
+        for col in sorted(self.cat_cols, key=len, reverse=True):
+            if feature.startswith(col + "_"):
+                return col, self._py(record.get(col))
+        return feature, None
 
     def _prepare_dataframe(self, record: dict) -> pd.DataFrame:
         """Sanitizes and aligns a single customer record."""
@@ -104,7 +161,7 @@ class ChurnInferenceEngine:
         """
         Executes end-to-end scoring, early-warning classification, and local SHAP decomposition.
         """
-        self.validate_record(customer_data)
+        customer_data = self.validate_record(customer_data)
         raw_df = self._prepare_dataframe(customer_data)
         X_trans = self.preprocessor.transform(raw_df)
 
@@ -131,10 +188,15 @@ class ChurnInferenceEngine:
             # Extract top positive (accelerators) and negative (retention anchors)
             paired = []
             for f_name, s_val, d_val in zip(self.feature_names, customer_shap.values, customer_shap.data):
+                source, raw = self._source_and_raw(f_name, customer_data)
                 paired.append({
                     'feature': f_name,
                     'shap_impact': float(s_val),
-                    'feature_value': float(d_val) if isinstance(d_val, (int, float, np.number)) else str(d_val)
+                    # engineered (scaled / one-hot) value the model saw
+                    'feature_value': float(d_val) if isinstance(d_val, (int, float, np.number)) else str(d_val),
+                    # the customer's original input for this feature
+                    'source_feature': source,
+                    'raw_value': raw
                 })
 
             accelerators = sorted([p for p in paired if p['shap_impact'] > 0], key=lambda x: x['shap_impact'], reverse=True)[:5]
@@ -145,6 +207,12 @@ class ChurnInferenceEngine:
                 'top_churn_accelerators': accelerators,
                 'top_retention_anchors': anchors
             }
+            # SHAP explains the UNCALIBRATED model score; churn_probability is the calibrated output.
+            inner_model = getattr(self.explainer, 'model', None)
+            if hasattr(inner_model, 'predict_proba'):
+                shap_details['explained_model_probability'] = round(float(inner_model.predict_proba(X_trans)[0, 1]), 4)
+            shap_details['explanation_scale'] = ('log-odds of the uncalibrated model score '
+                                                 '(base_value + sum(shap) = model margin)')
 
             if generate_waterfall:
                 os.makedirs(output_dir, exist_ok=True)
