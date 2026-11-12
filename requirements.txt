@@ -7,4 +7,4 @@ matplotlib==3.10.7
 seaborn==0.13.2
 joblib==1.5.2
 pytest==8.3.5
-# Install Streamlit and Plotly when the dashboard is added.
+Flask==3.0.3

@@ -18,6 +18,7 @@ import shap
 
 from src.preprocessing import get_clean_feature_names
 from src.early_warning import evaluate_customer_early_warning, batch_early_warning_detection
+from modules.recommendations import build_recommendations
 
 
 class ChurnInferenceEngine:
@@ -51,6 +52,29 @@ class ChurnInferenceEngine:
             'Contract', 'PaperlessBilling', 'PaymentMethod'
         ]
         self.feature_names = get_clean_feature_names(self.preprocessor, num_cols, cat_cols)
+        # The fitted transformer is the source of truth for the API contract.
+        self.required_features = list(getattr(self.preprocessor, 'feature_names_in_', []))
+
+    def validate_record(self, record: dict) -> dict:
+        """Validate an API record before it reaches the sklearn transformer."""
+        if not isinstance(record, dict):
+            raise ValueError("Customer data must be a JSON object.")
+
+        ignored = {'customerID', 'Churn'}
+        unknown = set(record).difference(self.required_features).difference(ignored)
+        missing = set(self.required_features).difference(record)
+        if unknown:
+            raise ValueError("Unknown customer fields: " + ", ".join(sorted(unknown)))
+        if missing:
+            raise ValueError("Missing required customer fields: " + ", ".join(sorted(missing)))
+
+        numeric_fields = {'tenure', 'MonthlyCharges', 'TotalCharges'}
+        for field in numeric_fields:
+            try:
+                float(record[field])
+            except (TypeError, ValueError):
+                raise ValueError(f"'{field}' must be numeric.") from None
+        return record
 
     def _prepare_dataframe(self, record: dict) -> pd.DataFrame:
         """Sanitizes and aligns a single customer record."""
@@ -80,6 +104,7 @@ class ChurnInferenceEngine:
         """
         Executes end-to-end scoring, early-warning classification, and local SHAP decomposition.
         """
+        self.validate_record(customer_data)
         raw_df = self._prepare_dataframe(customer_data)
         X_trans = self.preprocessor.transform(raw_df)
 
@@ -123,7 +148,7 @@ class ChurnInferenceEngine:
 
             if generate_waterfall:
                 os.makedirs(output_dir, exist_ok=True)
-                fig, ax = plt.subplots(figsize=(10, 7))
+                plt.figure(figsize=(10, 7))
                 shap.plots.waterfall(customer_shap, max_display=8, show=False)
                 plt.title(f"Local SHAP Risk Attribution: {customer_id} (P(Churn)={churn_prob:.1%})",
                           fontsize=13, fontweight='bold', pad=12)
@@ -132,6 +157,12 @@ class ChurnInferenceEngine:
                 plt.savefig(waterfall_path, dpi=300, bbox_inches='tight')
                 plt.close()
                 shap_details['waterfall_plot_path'] = waterfall_path
+
+        recommendations = build_recommendations(
+            shap_details.get('top_churn_accelerators', []),
+            early_warning['risk_tier'],
+            early_warning['recommended_retention_playbook']
+        )
 
         return {
             'customer_id': customer_id,
@@ -142,7 +173,8 @@ class ChurnInferenceEngine:
             'intervention_urgency': early_warning['intervention_urgency'],
             'active_triggers': early_warning['active_triggers'],
             'recommended_retention_playbook': early_warning['recommended_retention_playbook'],
-            'shap_explanation': shap_details
+            'shap_explanation': shap_details,
+            'retention_recommendations': recommendations
         }
 
     def predict_batch(self, input_csv: str, output_csv: str) -> pd.DataFrame:
